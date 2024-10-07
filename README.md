@@ -1,0 +1,1 @@
+# Laptop Prompts with ChatGPT API 
