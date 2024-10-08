@@ -1,5 +1,28 @@
 package usecases
 
+import (
+	"context"
+	"go-gpt-task/models"
+)
+
+type Usecases interface {
+	ParsePrompt(ctx context.Context, prompt string)
+}
+
+type DbRepository interface {
+	Insert(laptop models.Laptop)
+	FindByID(id string) (models.Laptop, bool)
+}
+
+type CacheRepository interface {
+	Insert(key string, data CachedLaptopPrompt)
+	FindByKey(key string) (CachedLaptopPrompt, bool)
+}
+
+type AIPromptParser interface {
+	Parse(ctx context.Context, prompt string) (LaptopPromptSchema, error)
+}
+
 type usecases struct {
 	dbRepo    DbRepository
 	cacheRepo CacheRepository

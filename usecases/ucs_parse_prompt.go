@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"go-gpt-task/models"
@@ -8,65 +9,65 @@ import (
 	"github.com/google/uuid"
 )
 
-type PromptState int
-
-const (
-	Successful PromptState = iota + 1
-	Failed
-)
-
-type PromptCacheResult struct {
-	Value string
-	State PromptState
+type CachedLaptopPrompt struct {
+	Prompt string
+	Value  string
+	Failed bool
 }
 
-func (uc *usecases) ParsePrompt(prompt string) (*models.Laptop, error) {
-	data := uc.cacheRepo.Contains(prompt)
-	if result, ok := data.(PromptCacheResult); ok {
-		if result.State == Failed {
-			return nil, errors.New(result.Value)
+type LaptopPromptSchema struct {
+	Message string        `json:"message"`
+	Failed  bool          `json:"failed"`
+	Laptop  models.Laptop `json:"laptop"`
+}
+
+func (uc *usecases) ParsePrompt(ctx context.Context, prompt string) (models.Laptop, error) {
+	if cached, ok := uc.cacheRepo.FindByKey(prompt); ok {
+		if cached.Failed {
+			return models.Laptop{}, errors.New(cached.Value)
 		}
 
-		laptop := uc.dbRepo.FindByID(result.Value)
-		if laptop == nil {
-			return nil, fmt.Errorf(
+		if laptop, ok := uc.dbRepo.FindByID(cached.Value); !ok {
+			return models.Laptop{}, fmt.Errorf(
 				"for prompt %q, found a non existing cached laptop with id %q",
 				prompt,
-				result.Value,
+				cached.Value,
+			)
+		} else {
+			return laptop, nil
+		}
+
+	}
+
+	if resp, err := uc.aiParser.Parse(ctx, prompt); err == nil {
+		if resp.Failed {
+			uc.cacheRepo.Insert(
+				prompt,
+				CachedLaptopPrompt{Failed: true, Value: resp.Message, Prompt: prompt},
+			)
+			return models.Laptop{}, errors.New(resp.Message)
+		}
+
+		laptop := resp.Laptop
+		laptop.ID = uuid.NewString()
+		if err := laptop.Validate(); err != nil {
+			newErr := fmt.Errorf("while parsing prompt:\n%q,\nfound following error(s): %w", prompt, err)
+			uc.cacheRepo.Insert(
+				prompt,
+				CachedLaptopPrompt{Failed: true, Prompt: prompt, Value: newErr.Error()},
 			)
 
+			return models.Laptop{}, newErr
 		}
+
+		uc.cacheRepo.Insert(
+			prompt,
+			CachedLaptopPrompt{Failed: true, Value: laptop.ID, Prompt: prompt},
+		)
+		uc.dbRepo.Insert(laptop)
 
 		return laptop, nil
-	} else if data != nil {
-		return nil, fmt.Errorf("for prompt %q, found a cached result with invalid type %T", prompt, data)
+	} else {
+		return models.Laptop{}, err
 	}
-
-	laptop, err := uc.aiParser.Parse(prompt)
-	if err != nil {
-		result := PromptCacheResult{
-			State: Failed,
-			Value: err.Error(),
-		}
-		uc.cacheRepo.Add(prompt, result)
-
-		return nil, err
-	}
-
-	laptop.ID = uuid.NewString()
-	if err := laptop.Validate(); err != nil {
-		newErr := fmt.Errorf("while parsing prompt:\n%q,\nfound following error(s): %w", prompt, err)
-		result := PromptCacheResult{
-			State: Failed,
-			Value: newErr.Error(),
-		}
-		uc.cacheRepo.Add(prompt, result)
-
-		return nil, err
-	}
-
-	uc.cacheRepo.Add(prompt, PromptCacheResult{State: Successful, Value: laptop.ID})
-	uc.dbRepo.Insert(laptop)
-
-	return &laptop, nil
 }
