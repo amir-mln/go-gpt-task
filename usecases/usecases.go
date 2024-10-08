@@ -5,8 +5,12 @@ import (
 	"go-gpt-task/models"
 )
 
+var (
+	_ Usecases = &usecases{}
+)
+
 type Usecases interface {
-	ParsePrompt(ctx context.Context, prompt string)
+	ParsePrompt(ctx context.Context, prompt string) (models.Laptop, error)
 }
 
 type DbRepository interface {
