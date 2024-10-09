@@ -6,8 +6,8 @@ import (
 )
 
 type Storage struct {
-	Type     string `json:"type" required:"true" description:"wether the storage is SSD or HDD"`
-	Capacity string `json:"capacity" required:"true" description:"the storage capacity in MiB, MB, GiB, GB, TiB or TB units"`
+	Type     string `json:"type" description:"wether the storage is SSD or HDD"`
+	Capacity string `json:"capacity" description:"the storage capacity in MiB, MB, GiB, GB, TiB or TB units"`
 }
 
 func (strg *Storage) Validate() error {

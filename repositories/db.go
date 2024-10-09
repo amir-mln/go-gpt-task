@@ -11,6 +11,10 @@ var (
 
 type Database []models.Laptop
 
+func NewDatabase() Database {
+	return make(Database, 0)
+}
+
 func (db *Database) Insert(laptop models.Laptop) {
 	*db = append(*db, laptop)
 }

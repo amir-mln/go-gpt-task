@@ -8,9 +8,13 @@ var (
 
 type Cache map[string]usecases.CachedLaptopPrompt
 
+func NewCache() Cache {
+	return make(Cache, 0)
+}
+
 func (cache Cache) FindByKey(key string) (usecases.CachedLaptopPrompt, bool) {
-	data := cache[key]
-	return data, true
+	res, ok := cache[key]
+	return res, ok
 }
 
 func (cache Cache) Insert(key string, data usecases.CachedLaptopPrompt) {

@@ -1,42 +1,41 @@
 package models
 
-import "errors"
+import (
+	"fmt"
+	"strings"
+)
 
 type Laptop struct {
-	Part
-	ID        string    `json:"-"`
-	Processor Processor `json:"processor"`
-	Memory    Memory    `json:"memory"`
-	Storage   Storage   `json:"model"`
-	Battery   Battery   `json:"battery"`
-	Details   string    `json:"details" required:"false" description:"any information that does not fit into other fields"`
+	ID            string  `json:"-"`
+	Brand         string  `json:"brand" description:"the brand of the manufacturer"`
+	Model         string  `json:"model" description:"the model of the part"`
+	Processor     string  `json:"processor"`
+	Memory        Memory  `json:"memory"`
+	Storage       Storage `json:"storage"`
+	BatteryStatus string  `json:"battery_status" description:"wether the battery is missing, is in a health state or similar statements"`
 }
 
 func (lp *Laptop) Validate() error {
-	errs := make([]error, 0)
-	if err := lp.Part.Validate(); err != nil {
-		errs = append(errs, err)
+	if strings.Trim(lp.Brand, " ") == "" || strings.Trim(lp.Model, " ") == "" {
+		return fmt.Errorf("the laptop's model and brand are required, got model: %q and brand: %q", lp.Model, lp.Brand)
 	}
 
-	if err := lp.Processor.Validate(); err != nil {
-		errs = append(errs, err)
+	if strings.Trim(lp.Processor, " ") == "" {
+
+		return fmt.Errorf("the laptop's processor is required, got processor: %q", lp.Processor)
 	}
 
-	if err := lp.Processor.Validate(); err != nil {
-		errs = append(errs, err)
+	if err := lp.Memory.Validate(); err != nil {
+		return err
 	}
 
-	if err := lp.Processor.Validate(); err != nil {
-		errs = append(errs, err)
+	if err := lp.Storage.Validate(); err != nil {
+		return err
 	}
 
-	if err := lp.Processor.Validate(); err != nil {
-		errs = append(errs, err)
+	if strings.Trim(lp.BatteryStatus, " ") == "" {
+		return fmt.Errorf("the status of laptop's battery is required, got status: %q", lp.BatteryStatus)
 	}
 
-	if err := lp.Processor.Validate(); err != nil {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
+	return nil
 }

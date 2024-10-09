@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"errors"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,6 +22,10 @@ func Load(files ...string) (Configs, error) {
 
 	configs := Configs{
 		APIKey: os.Getenv(EnvVarAPIKey),
+	}
+
+	if configs.APIKey == "" {
+		return Configs{}, errors.New("the API key environment variable is required")
 	}
 
 	return configs, nil
