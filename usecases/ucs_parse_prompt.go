@@ -27,8 +27,6 @@ func (uc *usecases) ParsePrompt(ctx context.Context, prompt string) (models.Lapt
 		return models.Laptop{}, errors.New("invalid empty string as prompt")
 	}
 
-	// mx := sync.RWMutex{}
-	// mx.
 	if cached, ok := uc.cacheRepo.FindByKey(prompt); ok {
 		if cached.Failed {
 			return models.Laptop{}, errors.New(cached.Value)

@@ -15,7 +15,7 @@ var (
 const (
 	systemMessage = `
 	You are an expert in identifying and extracting hardware information from laptops.
-	Given input data, your task is to extract information based on the following schema:
+	Given input data, extract information based on the following schema:
 		- Message: A human-readable message when the input is non-laptop related, invalid or doesn't contain enough information about laptops.
 		- Failed: A boolean indicating whether data extraction succeeded.
 		- Laptop: Contains extracted laptop data if successful, or null if no data could be extracted.
@@ -25,11 +25,10 @@ const (
 		  and the other is not, search the web to find out
 		- we need information about processor's manufacturer and its model. you can search the web if the
 		  provided user's message doesn't contain the necessary information. but it's important to match
-		  the extracted processor information with search results.
-		- if the type of the storage is not specified, it's safe to assume it is HDD
-		- do not round the numbers.
+		  the extracted processor information with search results
+		- do not round the numbers
 		- it's important to not add inaccurate information from the web search result. if searching
-		  does not provide you with information that relates to searched field, ignore it.
+		  does not provide you with information that relates to searched field, ignore it
 	`
 	assistantMessage = "The provided input does not relate to laptops"
 )
