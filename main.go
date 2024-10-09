@@ -16,11 +16,9 @@ import (
 
 type flags struct {
 	inputFile string
-	batchMode bool
 }
 
 func loadFlags() (flags, error) {
-	btch := flag.Bool("batch-mode", false, "wether to send the request in batch mode or not")
 	file := flag.String("input-file", "", "the path to the file that contains the laptops data")
 
 	flag.Parse()
@@ -29,7 +27,7 @@ func loadFlags() (flags, error) {
 		return flags{}, errors.New("the input file cli argument is required")
 	}
 
-	return flags{inputFile: *file, batchMode: *btch}, nil
+	return flags{inputFile: *file}, nil
 }
 
 func readFile(path string) ([]string, error) {
